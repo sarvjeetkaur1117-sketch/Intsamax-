@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intsamax</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            background-color: #121212;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #000;
+            border-bottom: 1px solid #262626;
+            z-index: 10;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .feed-container {
+            flex: 1;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+        .feed-container::-webkit-scrollbar {
+            display: none;
+        }
+        .reel-card {
+            width: 100%;
+            height: 100%;
+            scroll-snap-align: start;
+            position: relative;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .reel-card video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .reel-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 15px;
+            right: 70px;
+            z-index: 5;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #555;
+            margin-right: 10px;
+            border: 1.5px solid #fff;
+        }
+        .username {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .caption {
+            font-size: 14px;
+            color: #ddd;
+        }
+        .sidebar-actions {
+            position: absolute;
+            right: 15px;
+            bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 5;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 24px;
+            transition: transform 0.2s;
+        }
+        .action-btn:active {
+            transform: scale(1.3);
+        }
+        .action-btn span {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .liked {
+            color: #ff3040 !important;
+        }
+        .modal {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: #262626;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 20;
+        }
+        .modal.active {
+            transform: translateY(0);
+        }
+        .modal-header {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #363636;
+            font-weight: bold;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .comments-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .comment-item {
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+        .comment-user {
+            font-weight: bold;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 2px;
+        }
+        .comment-input-box {
+            display: flex;
+            padding: 10px 15px;
+            border-top: 1px solid #363636;
+            background: #121212;
+        }
+        .comment-input-box input {
+            flex: 1;
+            background: #1e1e1e;
+            border: none;
+            padding: 10px;
+            border-radius: 20px;
+            color: #fff;
+            outline: none;
+        }
+        .comment-input-box button {
+            background: none;
+            border: none;
+            color: #0095f6;
+            font-weight: bold;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .nav-footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            background: #000;
+            border-top: 1px solid #262626;
+            z-index: 10;
+        }
+        .nav-item {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Intsamax</h1>
+        </div>
+
+        <!-- Reels Feed -->
+        <div class="feed-container" id="feedContainer">
+            <!-- Reel 1 -->
+            <div class="reel-card">
+                <video src="https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-sign-fluorescent-light-41618-large.mp4" loop muted playsinline></video>
+                <div class="reel-overlay">
+                    <div class="user-info">
+                        <div class="avatar" style="background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100') center/cover;"></div>
+                        <span class="username">sarvjeet_ceo</span>
+                    </div>
+                    <div class="caption">Building my dream empire and scaling new heights! 🚀💼</div>
+                </div>
+                <div class="sidebar-actions">
+                    <button class="action-btn like-btn" onclick="toggleLike(this)">
+                        ❤️ <span class="like-count">1.2K</span>
+                    </button>
+                    <button class="action-btn" onclick="openComments()">
+                        💬 <span class="comment-count">48</span>
+                    </button>
+                    <button class="action-btn">share</button>
+                </div>
+            </div>
+
+            <!-- Reel 2 -->
+            <div class="reel-card">
+                <video src="https://assets.mixkit.co/videos/preview/mixkit-woman-working-on-her-laptop-at-home-43093-large.mp4" loop muted playsinline></video>
+                <div class="reel-overlay">
+                    <div class="user-info">
+                        <div class="avatar" style="background: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100') center/cover;"></div>
+                        <span class="username">finance_hustle</span>
+                    </div>
+                    <div class="caption">Late night data analytics and financial planning. Consistency is key! 📈</div>
+                </div>
+                <div class="sidebar-actions">
+                    <button class="action-btn like-btn" onclick="toggleLike(this)">
+                        ❤️ <span class="like-count">3.4K</span>
+                    </button>
+                    <button class="action-btn" onclick="openComments()">
+                        💬 <span class="comment-count">120</span>
+                    </button>
+                    <button class="action-btn">share</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Modal -->
+        <div class="modal" id="commentsModal">
+            <div class="modal-header">
+                Comments
+                <button class="close-modal" onclick="closeComments()">✕</button>
+            </div>
+            <div class="comments-list" id="commentsList">
+                <div class="comment-item">
+                    <span class="comment-user">elon_fan</span>
+                    <span>Inspirational mindset! Keep going 🔥</span>
+                </div>
+                <div class="comment-item">
+                    <span class="comment-user">data_geek</span>
+                    <span>Loved the workflow!</span>
+                </div>
+            </div>
+            <div class="comment-input-box">
+                <input type="text" id="commentInput" placeholder="Add a comment...">
+                <button onclick="addComment()">Post</button>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="nav-footer">
+            <button class="nav-item">🏠</button>
+            <button class="nav-item">🔍</button>
+            <button class="nav-item">➕</button>
+            <button class="nav-item">❤️</button>
+            <button class="nav-item">👤</button>
+        </div>
+    </div>
+
+    <script>
+        // Auto play videos on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target.querySelector('video');
+                if (entry.isIntersecting) {
+                    video.play().catch(e => console.log(e));
+                } else {
+                    video.pause();
+                }
+            });
+        }, { threshold: 0.6 });
+
+        document.querySelectorAll('.reel-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Like button toggle
+        function toggleLike(btn) {
+            btn.classList.toggle('liked');
+            const countSpan = btn.querySelector('.like-count');
+            let count = parseFloat(countSpan.innerText);
+            if (btn.classList.contains('liked')) {
+                countSpan.innerText = (count + 0.1).toFixed(1) + 'K';
+            } else {
+                countSpan.innerText = (count - 0.1).toFixed(1) + 'K';
+            }
+        }
+
+        // Comments Modal controls
+        function openComments() {
+            document.getElementById('commentsModal').classList.add('active');
+        }
+
+        function closeComments() {
+            document.getElementById('commentsModal').classList.remove('active');
+        }
+
+        // Add Comment
+        function addComment() {
+            const input = document.getElementById('commentInput');
+            const text = input.value.trim();
+            if (text === '') return;
+
+            const list = document.getElementById('commentsList');
+            const item = document.createElement('div');
+            item.className = 'comment-item';
+            item.innerHTML = `<span class="comment-user">sarvjeet_ceo</span><span>${text}</span>`;
+            list.appendChild(item);
+
+            input.value = '';
+            list.scrollTop = list.scrollHeight;
+        }
+    </script>
+</body>
+</html>
